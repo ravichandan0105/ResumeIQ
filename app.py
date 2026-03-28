@@ -71,3 +71,55 @@ if file:
     st.write("📧 Email:", email)
     st.write("📱 Phone:", phone)
     st.write("💡 Skills:", skills)
+    st.write("---")
+st.subheader("📊 Resume Analysis")
+
+# -------- LEVEL --------
+pages = text.count("\n") // 50 + 1  # simple page estimate
+
+if pages == 1:
+    level = "Fresher"
+elif pages == 2:
+    level = "Intermediate"
+else:
+    level = "Experienced"
+
+st.write(f"👨‍💻 Candidate Level: {level}")
+
+# -------- FIELD --------
+field = "General"
+
+ds_keywords = ["python", "machine learning", "data science", "pandas"]
+web_keywords = ["html", "css", "javascript", "react"]
+android_keywords = ["android", "kotlin", "flutter"]
+
+skills_lower = [s.lower() for s in skills]
+
+if any(skill in skills_lower for skill in ds_keywords):
+    field = "Data Science"
+elif any(skill in skills_lower for skill in web_keywords):
+    field = "Web Development"
+elif any(skill in skills_lower for skill in android_keywords):
+    field = "Android Development"
+
+st.info(f"💼 Recommended Field: {field}")
+
+# -------- SCORE --------
+score = 0
+
+if name != "Not found":
+    score += 20
+if email != "Not found":
+    score += 20
+if phone != "Not found":
+    score += 10
+if skills:
+    score += 30
+if len(text) > 1000:
+    score += 20
+
+score = min(score, 100)
+
+st.subheader("🎯 Resume Score")
+st.progress(score)
+st.success(f"Your Resume Score: {score}/100")
