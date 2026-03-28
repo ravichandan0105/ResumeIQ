@@ -11,7 +11,6 @@ st.set_page_config(page_title="ResumeIQ", page_icon="📄")
 
 st.title("📄 ResumeIQ")
 st.write("Analyze. Improve. Get Hired.")
-
 st.write("---")
 
 # Upload
@@ -35,8 +34,10 @@ def extract_name(text):
     return "Not found"
 
 def extract_skills(text):
-    skills_list = ["python","java","c++","machine learning","data science",
-                   "html","css","javascript","react","sql","excel"]
+    skills_list = [
+        "python","java","c++","machine learning","data science",
+        "html","css","javascript","react","sql","excel"
+    ]
 
     found = []
     text_lower = text.lower()
@@ -52,7 +53,7 @@ def extract_skills(text):
 if file:
     st.success("File uploaded successfully!")
 
-    # Save temp file
+    # Save file
     with open("temp.pdf", "wb") as f:
         f.write(file.read())
 
@@ -71,55 +72,57 @@ if file:
     st.write("📧 Email:", email)
     st.write("📱 Phone:", phone)
     st.write("💡 Skills:", skills)
+
+    # -------- ANALYSIS --------
     st.write("---")
-st.subheader("📊 Resume Analysis")
+    st.subheader("📊 Resume Analysis")
 
-# -------- LEVEL --------
-pages = text.count("\n") // 50 + 1  # simple page estimate
+    # Level
+    pages = text.count("\n") // 50 + 1
 
-if pages == 1:
-    level = "Fresher"
-elif pages == 2:
-    level = "Intermediate"
-else:
-    level = "Experienced"
+    if pages == 1:
+        level = "Fresher"
+    elif pages == 2:
+        level = "Intermediate"
+    else:
+        level = "Experienced"
 
-st.write(f"👨‍💻 Candidate Level: {level}")
+    st.write(f"👨‍💻 Candidate Level: {level}")
 
-# -------- FIELD --------
-field = "General"
+    # Field
+    field = "General"
 
-ds_keywords = ["python", "machine learning", "data science", "pandas"]
-web_keywords = ["html", "css", "javascript", "react"]
-android_keywords = ["android", "kotlin", "flutter"]
+    ds_keywords = ["python", "machine learning", "data science"]
+    web_keywords = ["html", "css", "javascript", "react"]
+    android_keywords = ["android", "kotlin", "flutter"]
 
-skills_lower = [s.lower() for s in skills]
+    skills_lower = [s.lower() for s in skills]
 
-if any(skill in skills_lower for skill in ds_keywords):
-    field = "Data Science"
-elif any(skill in skills_lower for skill in web_keywords):
-    field = "Web Development"
-elif any(skill in skills_lower for skill in android_keywords):
-    field = "Android Development"
+    if any(skill in skills_lower for skill in ds_keywords):
+        field = "Data Science"
+    elif any(skill in skills_lower for skill in web_keywords):
+        field = "Web Development"
+    elif any(skill in skills_lower for skill in android_keywords):
+        field = "Android Development"
 
-st.info(f"💼 Recommended Field: {field}")
+    st.info(f"💼 Recommended Field: {field}")
 
-# -------- SCORE --------
-score = 0
+    # Score
+    score = 0
 
-if name != "Not found":
-    score += 20
-if email != "Not found":
-    score += 20
-if phone != "Not found":
-    score += 10
-if skills:
-    score += 30
-if len(text) > 1000:
-    score += 20
+    if name != "Not found":
+        score += 20
+    if email != "Not found":
+        score += 20
+    if phone != "Not found":
+        score += 10
+    if skills:
+        score += 30
+    if len(text) > 1000:
+        score += 20
 
-score = min(score, 100)
+    score = min(score, 100)
 
-st.subheader("🎯 Resume Score")
-st.progress(score)
-st.success(f"Your Resume Score: {score}/100")
+    st.subheader("🎯 Resume Score")
+    st.progress(score)
+    st.success(f"Your Resume Score: {score}/100")
