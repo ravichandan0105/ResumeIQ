@@ -126,3 +126,59 @@ if file:
     st.subheader("🎯 Resume Score")
     st.progress(score)
     st.success(f"Your Resume Score: {score}/100")
+    st.write("---")
+    st.subheader("💡 Recommendations")
+
+    # -------- SKILL RECOMMENDATIONS --------
+    recommended_skills = []
+
+    if field == "Data Science":
+        recommended_skills = ["pandas", "numpy", "machine learning", "deep learning", "matplotlib"]
+
+    elif field == "Web Development":
+        recommended_skills = ["node.js", "express", "mongodb", "tailwind", "next.js"]
+
+    elif field == "Android Development":
+        recommended_skills = ["firebase", "api integration", "ui/ux", "jetpack compose"]
+
+    else:
+        recommended_skills = ["communication", "problem solving", "git", "projects"]
+
+    st.write("📌 Recommended Skills:")
+    st.write(recommended_skills)
+
+    # -------- COURSE RECOMMENDATIONS --------
+    st.subheader("🎓 Recommended Courses")
+
+    courses = []
+
+    if field == "Data Science":
+        courses = [
+            "Machine Learning by Andrew Ng (Coursera)",
+            "Data Science with Python (Udemy)",
+            "Deep Learning Specialization"
+        ]
+
+    elif field == "Web Development":
+        courses = [
+            "Full Stack Web Development (Udemy)",
+            "React JS Course",
+            "Node.js Bootcamp"
+        ]
+
+    elif field == "Android Development":
+        courses = [
+            "Android Development with Kotlin",
+            "Flutter Development Course",
+            "Build Apps with Firebase"
+        ]
+
+    else:
+        courses = [
+            "Learn Git & GitHub",
+            "Problem Solving & DSA",
+            "Communication Skills"
+        ]
+
+    for c in courses:
+        st.write("•", c)
