@@ -2,11 +2,37 @@ import streamlit as st
 import spacy
 import re
 from pdfminer.high_level import extract_text
+import pymysql
+import datetime
 
-# Load NLP
+# ---------------- DATABASE ----------------
+connection = pymysql.connect(
+    host="localhost",
+    user="root",          # change if needed
+    password=""           # change if needed
+)
+
+cursor = connection.cursor()
+
+cursor.execute("CREATE DATABASE IF NOT EXISTS resumeiq_db")
+connection.select_db("resumeiq_db")
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(100),
+    score INT,
+    field VARCHAR(50),
+    level VARCHAR(50),
+    timestamp VARCHAR(50)
+)
+""")
+
+# ---------------- NLP ----------------
 nlp = spacy.load("en_core_web_sm")
 
-# Page setup
+# ---------------- UI ----------------
 st.set_page_config(page_title="ResumeIQ", page_icon="📄")
 
 st.title("📄 ResumeIQ")
@@ -16,7 +42,7 @@ st.write("---")
 # Upload
 file = st.file_uploader("Upload your resume (PDF)", type=["pdf"])
 
-# -------- FUNCTIONS --------
+# ---------------- FUNCTIONS ----------------
 
 def extract_email(text):
     match = re.findall(r"[\\w\\.-]+@[\\w\\.-]+", text)
@@ -48,7 +74,7 @@ def extract_skills(text):
 
     return list(set(found))
 
-# -------- MAIN --------
+# ---------------- MAIN ----------------
 
 if file:
     st.success("File uploaded successfully!")
@@ -73,11 +99,10 @@ if file:
     st.write("📱 Phone:", phone)
     st.write("💡 Skills:", skills)
 
-    # -------- ANALYSIS --------
+    # ---------------- ANALYSIS ----------------
     st.write("---")
     st.subheader("📊 Resume Analysis")
 
-    # Level
     pages = text.count("\n") // 50 + 1
 
     if pages == 1:
@@ -89,7 +114,6 @@ if file:
 
     st.write(f"👨‍💻 Candidate Level: {level}")
 
-    # Field
     field = "General"
 
     ds_keywords = ["python", "machine learning", "data science"]
@@ -107,7 +131,7 @@ if file:
 
     st.info(f"💼 Recommended Field: {field}")
 
-    # Score
+    # ---------------- SCORE ----------------
     score = 0
 
     if name != "Not found":
@@ -126,59 +150,56 @@ if file:
     st.subheader("🎯 Resume Score")
     st.progress(score)
     st.success(f"Your Resume Score: {score}/100")
+
+    # ---------------- RECOMMENDATIONS ----------------
     st.write("---")
     st.subheader("💡 Recommendations")
 
-    # -------- SKILL RECOMMENDATIONS --------
-    recommended_skills = []
-
     if field == "Data Science":
         recommended_skills = ["pandas", "numpy", "machine learning", "deep learning", "matplotlib"]
-
-    elif field == "Web Development":
-        recommended_skills = ["node.js", "express", "mongodb", "tailwind", "next.js"]
-
-    elif field == "Android Development":
-        recommended_skills = ["firebase", "api integration", "ui/ux", "jetpack compose"]
-
-    else:
-        recommended_skills = ["communication", "problem solving", "git", "projects"]
-
-    st.write("📌 Recommended Skills:")
-    st.write(recommended_skills)
-
-    # -------- COURSE RECOMMENDATIONS --------
-    st.subheader("🎓 Recommended Courses")
-
-    courses = []
-
-    if field == "Data Science":
         courses = [
-            "Machine Learning by Andrew Ng (Coursera)",
-            "Data Science with Python (Udemy)",
+            "Machine Learning by Andrew Ng",
+            "Data Science with Python",
             "Deep Learning Specialization"
         ]
 
     elif field == "Web Development":
+        recommended_skills = ["node.js", "express", "mongodb", "tailwind", "next.js"]
         courses = [
-            "Full Stack Web Development (Udemy)",
+            "Full Stack Web Development",
             "React JS Course",
             "Node.js Bootcamp"
         ]
 
     elif field == "Android Development":
+        recommended_skills = ["firebase", "api integration", "ui/ux", "jetpack compose"]
         courses = [
             "Android Development with Kotlin",
-            "Flutter Development Course",
-            "Build Apps with Firebase"
+            "Flutter Course",
+            "Firebase Apps"
         ]
 
     else:
+        recommended_skills = ["communication", "problem solving", "git", "projects"]
         courses = [
-            "Learn Git & GitHub",
-            "Problem Solving & DSA",
+            "Git & GitHub",
+            "DSA",
             "Communication Skills"
         ]
 
+    st.write("📌 Recommended Skills:")
+    st.write(recommended_skills)
+
+    st.subheader("🎓 Recommended Courses")
     for c in courses:
         st.write("•", c)
+
+    # ---------------- DATABASE SAVE ----------------
+    ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    cursor.execute(
+        "INSERT INTO users (name,email,score,field,level,timestamp) VALUES (%s,%s,%s,%s,%s,%s)",
+        (name, email, score, field, level, ts)
+    )
+
+    connection.commit()
