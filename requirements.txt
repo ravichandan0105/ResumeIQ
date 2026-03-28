@@ -1,0 +1,7 @@
+streamlit
+spacy
+pandas
+pymysql
+pyresparser
+pdfminer.six
+nltk
