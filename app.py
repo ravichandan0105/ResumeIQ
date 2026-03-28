@@ -4,12 +4,18 @@ import re
 from pdfminer.high_level import extract_text
 import pymysql
 import datetime
+import pandas as pd
+import random
+import plotly.express as px
+
+# ---------------- IMPORT COURSES ----------------
+from courses import ds_courses, web_courses, android_courses, resume_videos, interview_videos
 
 # ---------------- DATABASE ----------------
 connection = pymysql.connect(
     host="localhost",
-    user="root",          # change if needed
-    password=""           # change if needed
+    user="root",
+    password=""
 )
 
 cursor = connection.cursor()
@@ -79,11 +85,9 @@ def extract_skills(text):
 if file:
     st.success("File uploaded successfully!")
 
-    # Save file
     with open("temp.pdf", "wb") as f:
         f.write(file.read())
 
-    # Extract text
     text = extract_text("temp.pdf")
 
     st.write("---")
@@ -157,42 +161,36 @@ if file:
 
     if field == "Data Science":
         recommended_skills = ["pandas", "numpy", "machine learning", "deep learning", "matplotlib"]
-        courses = [
-            "Machine Learning by Andrew Ng",
-            "Data Science with Python",
-            "Deep Learning Specialization"
-        ]
+        selected_courses = ds_courses
 
     elif field == "Web Development":
         recommended_skills = ["node.js", "express", "mongodb", "tailwind", "next.js"]
-        courses = [
-            "Full Stack Web Development",
-            "React JS Course",
-            "Node.js Bootcamp"
-        ]
+        selected_courses = web_courses
 
     elif field == "Android Development":
         recommended_skills = ["firebase", "api integration", "ui/ux", "jetpack compose"]
-        courses = [
-            "Android Development with Kotlin",
-            "Flutter Course",
-            "Firebase Apps"
-        ]
+        selected_courses = android_courses
 
     else:
         recommended_skills = ["communication", "problem solving", "git", "projects"]
-        courses = [
-            "Git & GitHub",
-            "DSA",
-            "Communication Skills"
-        ]
+        selected_courses = []
 
     st.write("📌 Recommended Skills:")
     st.write(recommended_skills)
 
     st.subheader("🎓 Recommended Courses")
-    for c in courses:
-        st.write("•", c)
+
+    for course, link in selected_courses[:4]:
+        st.write(f"• [{course}]({link})")
+
+    # ---------------- VIDEOS ----------------
+    st.write("---")
+    st.subheader("🎥 Resume Tips")
+
+    st.video(random.choice(resume_videos))
+
+    st.subheader("🎤 Interview Tips")
+    st.video(random.choice(interview_videos))
 
     # ---------------- DATABASE SAVE ----------------
     ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -203,3 +201,39 @@ if file:
     )
 
     connection.commit()
+
+# ---------------- ADMIN DASHBOARD ----------------
+
+st.write("---")
+st.subheader("🔐 Admin Login")
+
+admin_user = st.text_input("Username")
+admin_pass = st.text_input("Password", type="password")
+
+if st.button("Login"):
+    if admin_user == "admin" and admin_pass == "resumeiq":
+        st.success("Welcome Admin 👨‍💻")
+
+        cursor.execute("SELECT * FROM users")
+        data = cursor.fetchall()
+
+        df = pd.DataFrame(data, columns=[
+            "ID","Name","Email","Score","Field","Level","Time"
+        ])
+
+        st.subheader("📊 User Data")
+        st.dataframe(df)
+
+        # -------- CHARTS --------
+        st.subheader("📊 Field Distribution")
+        field_counts = df["Field"].value_counts()
+        fig = px.pie(values=field_counts.values, names=field_counts.index)
+        st.plotly_chart(fig)
+
+        st.subheader("📊 User Level Distribution")
+        level_counts = df["Level"].value_counts()
+        fig2 = px.pie(values=level_counts.values, names=level_counts.index)
+        st.plotly_chart(fig2)
+
+    else:
+        st.error("Invalid Credentials")
