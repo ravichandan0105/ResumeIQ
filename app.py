@@ -7,6 +7,7 @@ import datetime
 import pandas as pd
 import random
 import plotly.express as px
+import os
 
 # ---------------- IMPORT COURSES ----------------
 from courses import ds_courses, web_courses, android_courses, resume_videos, interview_videos
@@ -41,8 +42,12 @@ nlp = spacy.load("en_core_web_sm")
 # ---------------- UI ----------------
 st.set_page_config(page_title="ResumeIQ", page_icon="📄")
 
+# -------- LOGO SAFE LOAD --------
+if os.path.exists("logo.png"):
+    st.image("logo.png", width=120)
+
 st.title("📄 ResumeIQ")
-st.write("Analyze. Improve. Get Hired.")
+st.caption("Analyze. Improve. Get Hired.")
 st.write("---")
 
 # Upload
@@ -98,10 +103,16 @@ if file:
     phone = extract_phone(text)
     skills = extract_skills(text)
 
-    st.write("👤 Name:", name)
-    st.write("📧 Email:", email)
-    st.write("📱 Phone:", phone)
-    st.write("💡 Skills:", skills)
+    # -------- BETTER UI --------
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.success(f"👤 Name: {name}")
+        st.info(f"📧 Email: {email}")
+
+    with col2:
+        st.warning(f"📱 Phone: {phone}")
+        st.write(f"💡 Skills: {', '.join(skills) if skills else 'None'}")
 
     # ---------------- ANALYSIS ----------------
     st.write("---")
@@ -116,7 +127,7 @@ if file:
     else:
         level = "Experienced"
 
-    st.write(f"👨‍💻 Candidate Level: {level}")
+    st.write(f"👨‍💻 Candidate Level: **{level}**")
 
     field = "General"
 
@@ -153,32 +164,38 @@ if file:
 
     st.subheader("🎯 Resume Score")
     st.progress(score)
-    st.success(f"Your Resume Score: {score}/100")
 
-    # ---------------- RECOMMENDATIONS ----------------
+    if score >= 80:
+        st.success(f"🔥 Excellent Resume: {score}/100")
+    elif score >= 60:
+        st.warning(f"⚡ Good Resume: {score}/100")
+    else:
+        st.error(f"🚨 Needs Improvement: {score}/100")
+
+    # ---------------- SUGGESTIONS ----------------
+    st.subheader("💡 Suggestions")
+
+    if not skills:
+        st.write("• Add more relevant skills")
+    if name == "Not found":
+        st.write("• Add your full name clearly")
+    if email == "Not found":
+        st.write("• Include a professional email")
+    if len(text) < 800:
+        st.write("• Add more content to your resume")
+
+    # ---------------- COURSES ----------------
     st.write("---")
-    st.subheader("💡 Recommendations")
+    st.subheader("🎓 Recommended Courses")
 
     if field == "Data Science":
-        recommended_skills = ["pandas", "numpy", "machine learning", "deep learning", "matplotlib"]
         selected_courses = ds_courses
-
     elif field == "Web Development":
-        recommended_skills = ["node.js", "express", "mongodb", "tailwind", "next.js"]
         selected_courses = web_courses
-
     elif field == "Android Development":
-        recommended_skills = ["firebase", "api integration", "ui/ux", "jetpack compose"]
         selected_courses = android_courses
-
     else:
-        recommended_skills = ["communication", "problem solving", "git", "projects"]
         selected_courses = []
-
-    st.write("📌 Recommended Skills:")
-    st.write(recommended_skills)
-
-    st.subheader("🎓 Recommended Courses")
 
     for course, link in selected_courses[:4]:
         st.write(f"• [{course}]({link})")
@@ -186,7 +203,6 @@ if file:
     # ---------------- VIDEOS ----------------
     st.write("---")
     st.subheader("🎥 Resume Tips")
-
     st.video(random.choice(resume_videos))
 
     st.subheader("🎤 Interview Tips")
