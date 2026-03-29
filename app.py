@@ -13,13 +13,13 @@ import os
 from courses import ds_courses, web_courses, android_courses, resume_videos, interview_videos
 
 # ---------------- DATABASE ----------------
-connection = pymysql.connect(
-    host="localhost",
-    user="root",
-    password=""
-)
+#connection = pymysql.connect(
+#    host="localhost",
+#    user="root",
+#    password=""
+#)
 
-cursor = connection.cursor()
+#cursor = connection.cursor()
 
 cursor.execute("CREATE DATABASE IF NOT EXISTS resumeiq_db")
 connection.select_db("resumeiq_db")
