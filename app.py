@@ -8,6 +8,14 @@ import pandas as pd
 import random
 import plotly.express as px
 import os
+import spacy
+
+try:
+    nlp = spacy.load("en_core_web_sm")
+except:
+    import os
+    os.system("python -m spacy download en_core_web_sm")
+    nlp = spacy.load("en_core_web_sm")
 
 # ---------------- IMPORT COURSES ----------------
 from courses import ds_courses, web_courses, android_courses, resume_videos, interview_videos
