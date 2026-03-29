@@ -2,6 +2,6 @@ streamlit
 spacy
 pandas
 pymysql
-pyresparser
 pdfminer.six
+plotly
 nltk
