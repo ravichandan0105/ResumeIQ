@@ -21,20 +21,20 @@ from courses import ds_courses, web_courses, android_courses, resume_videos, int
 
 #cursor = connection.cursor()
 
-cursor.execute("CREATE DATABASE IF NOT EXISTS resumeiq_db")
-connection.select_db("resumeiq_db")
+#cursor.execute("CREATE DATABASE IF NOT EXISTS resumeiq_db")
+#connection.select_db("resumeiq_db")
 
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100),
-    email VARCHAR(100),
-    score INT,
-    field VARCHAR(50),
-    level VARCHAR(50),
-    timestamp VARCHAR(50)
-)
-""")
+#cursor.execute("""
+#CREATE TABLE IF NOT EXISTS users (
+#    id INT AUTO_INCREMENT PRIMARY KEY,
+#    name VARCHAR(100),
+#    email VARCHAR(100),
+#    score INT,
+#    field VARCHAR(50),
+#    level VARCHAR(50),
+#    timestamp VARCHAR(50)
+#)
+#""")
 
 # ---------------- NLP ----------------
 nlp = spacy.load("en_core_web_sm")
