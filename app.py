@@ -1,14 +1,11 @@
 import streamlit as st
 import re
 from pdfminer.high_level import extract_text
-import pymysql
-import datetime
-import pandas as pd
-import random
-import plotly.express as px
+import plotly.graph_objects as go
 import os
 import spacy
 
+# ---------------- NLP ----------------
 try:
     nlp = spacy.load("en_core_web_sm")
 except:
@@ -16,247 +13,130 @@ except:
     download("en_core_web_sm")
     nlp = spacy.load("en_core_web_sm")
 
-# ---------------- IMPORT COURSES ----------------
-from courses import ds_courses, web_courses, android_courses, resume_videos, interview_videos
+# ---------------- CONFIG ----------------
+st.set_page_config(page_title="ResumeIQ", page_icon="📄", layout="wide")
 
-# ---------------- DATABASE ----------------
-#connection = pymysql.connect(
-#    host="localhost",
-#    user="root",
-#    password=""
-#)
+# ---------------- STYLE ----------------
+st.markdown("""
+<style>
+.card {
+    padding: 18px;
+    border-radius: 16px;
+    background: linear-gradient(145deg, #1f2937, #111827);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+    color: white;
+}
+.card-title { color: #9ca3af; font-size: 14px; }
+.card-value { font-size: 20px; font-weight: 600; }
+</style>
+""", unsafe_allow_html=True)
 
-#cursor = connection.cursor()
-
-#cursor.execute("CREATE DATABASE IF NOT EXISTS resumeiq_db")
-#connection.select_db("resumeiq_db")
-
-#cursor.execute("""
-#CREATE TABLE IF NOT EXISTS users (
-#    id INT AUTO_INCREMENT PRIMARY KEY,
-#    name VARCHAR(100),
-#    email VARCHAR(100),
-#    score INT,
-#    field VARCHAR(50),
-#    level VARCHAR(50),
-#    timestamp VARCHAR(50)
-#)
-#""")
-
-# ---------------- NLP ----------------
-nlp = spacy.load("en_core_web_sm")
-
-# ---------------- UI ----------------
-st.set_page_config(page_title="ResumeIQ", page_icon="📄")
-
-# -------- LOGO SAFE LOAD --------
-if os.path.exists("logo.png"):
-    st.image("logo.png", width=120)
-
-st.title("📄 ResumeIQ")
-st.caption("Analyze. Improve. Get Hired.")
-st.write("---")
-
-# Upload
-file = st.file_uploader("Upload your resume (PDF)", type=["pdf"])
+# ---------------- HEADER ----------------
+st.markdown("<h1 style='text-align:center;'>📄 ResumeIQ</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:gray;'>Analyze • Improve • Get Hired</p>", unsafe_allow_html=True)
 
 # ---------------- FUNCTIONS ----------------
-
 def extract_email(text):
-    match = re.findall(r"[\\w\\.-]+@[\\w\\.-]+", text)
-    return match[0] if match else "Not found"
+    match = re.findall(r"[\w\.-]+@[\w\.-]+", text)
+    return match[0] if match else None
 
 def extract_phone(text):
-    match = re.findall(r"\\+?\\d[\\d -]{8,12}\\d", text)
-    return match[0] if match else "Not found"
+    match = re.findall(r"\+?\d[\d -]{8,12}\d", text)
+    return match[0] if match else None
 
 def extract_name(text):
-    doc = nlp(text)
+    doc = nlp(text[:1000])
     for ent in doc.ents:
         if ent.label_ == "PERSON":
             return ent.text
-    return "Not found"
+    return None
 
 def extract_skills(text):
-    skills_list = [
-        "python","java","c++","machine learning","data science",
-        "html","css","javascript","react","sql","excel"
-    ]
+    skills_list = ["python","java","c++","machine learning","data science",
+                   "html","css","javascript","react","sql","excel"]
+    text = text.lower()
+    return [s for s in skills_list if re.search(rf"\b{s}\b", text)]
 
-    found = []
-    text_lower = text.lower()
-
-    for skill in skills_list:
-        if skill in text_lower:
-            found.append(skill)
-
-    return list(set(found))
-
-# ---------------- MAIN ----------------
+# ---------------- UPLOAD ----------------
+file = st.file_uploader("Upload Resume (PDF)", type=["pdf"])
 
 if file:
-    st.success("File uploaded successfully!")
-
-    with open("temp.pdf", "wb") as f:
+    with open(file.name, "wb") as f:
         f.write(file.read())
 
-    text = extract_text("temp.pdf")
-
-    st.write("---")
-    st.subheader("📊 Extracted Information")
+    text = extract_text(file.name)
 
     name = extract_name(text)
     email = extract_email(text)
     phone = extract_phone(text)
     skills = extract_skills(text)
 
-    # -------- BETTER UI --------
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
-    with col1:
-        st.success(f"👤 Name: {name}")
-        st.info(f"📧 Email: {email}")
+    col1.markdown(f"<div class='card'><div class='card-title'>Name</div><div class='card-value'>{name or 'Not Found'}</div></div>", unsafe_allow_html=True)
+    col2.markdown(f"<div class='card'><div class='card-title'>Email</div><div class='card-value'>{email or 'Not Found'}</div></div>", unsafe_allow_html=True)
+    col3.markdown(f"<div class='card'><div class='card-title'>Phone</div><div class='card-value'>{phone or 'Not Found'}</div></div>", unsafe_allow_html=True)
 
-    with col2:
-        st.warning(f"📱 Phone: {phone}")
-        st.write(f"💡 Skills: {', '.join(skills) if skills else 'None'}")
+    st.markdown("<br>", unsafe_allow_html=True)
 
-    # ---------------- ANALYSIS ----------------
-    st.write("---")
-    st.subheader("📊 Resume Analysis")
+    st.markdown(f"<div class='card'><b>Skills:</b><br>{', '.join(skills) if skills else 'None'}</div>", unsafe_allow_html=True)
 
-    pages = text.count("\n") // 50 + 1
-
-    if pages == 1:
-        level = "Fresher"
-    elif pages == 2:
-        level = "Intermediate"
-    else:
-        level = "Experienced"
-
-    st.write(f"👨‍💻 Candidate Level: **{level}**")
-
+    # ---------------- FIELD ----------------
     field = "General"
-
-    ds_keywords = ["python", "machine learning", "data science"]
-    web_keywords = ["html", "css", "javascript", "react"]
-    android_keywords = ["android", "kotlin", "flutter"]
-
-    skills_lower = [s.lower() for s in skills]
-
-    if any(skill in skills_lower for skill in ds_keywords):
+    if any(s in skills for s in ["python","machine learning"]):
         field = "Data Science"
-    elif any(skill in skills_lower for skill in web_keywords):
+    elif any(s in skills for s in ["html","css","javascript"]):
         field = "Web Development"
-    elif any(skill in skills_lower for skill in android_keywords):
-        field = "Android Development"
 
-    st.info(f"💼 Recommended Field: {field}")
+    st.metric("Recommended Field", field)
 
     # ---------------- SCORE ----------------
     score = 0
+    if "objective" in text.lower(): score += 20
+    if "projects" in text.lower(): score += 20
+    if "skills" in text.lower(): score += 20
+    if "education" in text.lower(): score += 20
+    if "experience" in text.lower(): score += 20
 
-    if name != "Not found":
-        score += 20
-    if email != "Not found":
-        score += 20
-    if phone != "Not found":
-        score += 10
-    if skills:
-        score += 30
-    if len(text) > 1000:
-        score += 20
+    st.markdown("## 🎯 Resume Score")
 
-    score = min(score, 100)
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number",
+        value=score,
+        gauge={'axis': {'range': [0,100]}}
+    ))
+    st.plotly_chart(fig, use_container_width=True)
 
-    st.subheader("🎯 Resume Score")
-    st.progress(score)
-
-    if score >= 80:
-        st.success(f"🔥 Excellent Resume: {score}/100")
-    elif score >= 60:
-        st.warning(f"⚡ Good Resume: {score}/100")
+    # ---------------- RECOMMENDED SKILLS ----------------
+    if field == "Data Science":
+        rec_skills = ["TensorFlow","Pandas","ML Algorithms"]
+    elif field == "Web Development":
+        rec_skills = ["React","Node.js","MongoDB"]
     else:
-        st.error(f"🚨 Needs Improvement: {score}/100")
+        rec_skills = []
 
-    # ---------------- SUGGESTIONS ----------------
-    st.subheader("💡 Suggestions")
-
-    if not skills:
-        st.write("• Add more relevant skills")
-    if name == "Not found":
-        st.write("• Add your full name clearly")
-    if email == "Not found":
-        st.write("• Include a professional email")
-    if len(text) < 800:
-        st.write("• Add more content to your resume")
+    if rec_skills:
+        st.markdown(f"<div class='card'><b>Recommended Skills</b><br>{', '.join(rec_skills)}</div>", unsafe_allow_html=True)
 
     # ---------------- COURSES ----------------
-    st.write("---")
-    st.subheader("🎓 Recommended Courses")
+    from courses import ds_courses, web_courses
 
-    if field == "Data Science":
-        selected_courses = ds_courses
-    elif field == "Web Development":
-        selected_courses = web_courses
-    elif field == "Android Development":
-        selected_courses = android_courses
-    else:
-        selected_courses = []
+    st.markdown("## 🎓 Courses")
 
-    for course, link in selected_courses[:4]:
-        st.write(f"• [{course}]({link})")
+    selected = ds_courses if field=="Data Science" else web_courses
 
-    # ---------------- VIDEOS ----------------
-    st.write("---")
-    st.subheader("🎥 Resume Tips")
-    st.video(random.choice(resume_videos))
+    for c, link in selected:
+        st.markdown(f"<div class='card'>📘 {c}<br><a href='{link}'>Open</a></div>", unsafe_allow_html=True)
 
-    st.subheader("🎤 Interview Tips")
-    st.video(random.choice(interview_videos))
+    # ---------------- SUGGESTIONS ----------------
+    st.markdown("## 💡 Suggestions")
 
-    # ---------------- DATABASE SAVE ----------------
-    ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    if "projects" not in text.lower():
+        st.warning("Add projects")
+    if "objective" not in text.lower():
+        st.warning("Add career objective")
 
-    cursor.execute(
-        "INSERT INTO users (name,email,score,field,level,timestamp) VALUES (%s,%s,%s,%s,%s,%s)",
-        (name, email, score, field, level, ts)
-    )
+    os.remove(file.name)
 
-    connection.commit()
-
-# ---------------- ADMIN DASHBOARD ----------------
-
-st.write("---")
-st.subheader("🔐 Admin Login")
-
-admin_user = st.text_input("Username")
-admin_pass = st.text_input("Password", type="password")
-
-if st.button("Login"):
-    if admin_user == "admin" and admin_pass == "resumeiq":
-        st.success("Welcome Admin 👨‍💻")
-
-        cursor.execute("SELECT * FROM users")
-        data = cursor.fetchall()
-
-        df = pd.DataFrame(data, columns=[
-            "ID","Name","Email","Score","Field","Level","Time"
-        ])
-
-        st.subheader("📊 User Data")
-        st.dataframe(df)
-
-        # -------- CHARTS --------
-        st.subheader("📊 Field Distribution")
-        field_counts = df["Field"].value_counts()
-        fig = px.pie(values=field_counts.values, names=field_counts.index)
-        st.plotly_chart(fig)
-
-        st.subheader("📊 User Level Distribution")
-        level_counts = df["Level"].value_counts()
-        fig2 = px.pie(values=level_counts.values, names=level_counts.index)
-        st.plotly_chart(fig2)
-
-    else:
-        st.error("Invalid Credentials")
+else:
+    st.info("Upload a resume to start")

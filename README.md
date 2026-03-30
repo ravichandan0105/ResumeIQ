@@ -1,31 +1,39 @@
 # 📄 ResumeIQ — Smart Resume Analyzer
 
-ResumeIQ is an AI-powered web application that analyzes resumes and provides insights like resume score, skill extraction, and career suggestions.
-
----
+ResumeIQ is a clean and modern web app that analyzes resumes and provides insights like resume score, skill detection, and course recommendations.
 
 ## 🚀 Features
 
-- 📤 Upload Resume (PDF)
-- 🧠 Extract Name, Email, Skills
-- 📊 Resume Score (Coming in Phase 3)
-- 💼 Career Recommendations (Coming Soon)
-- 🗄️ Database Integration (Coming Soon)
+* Upload Resume (PDF)
+* Extract Name, Email, Skills
+* Resume Score (based on content)
+* Recommended Skills
+* Course Suggestions
+* Clean UI Dashboard
 
----
+## 🛠 Tech Stack
 
-## 🛠️ Tech Stack
+* Python
+* Streamlit
+* spaCy (NLP)
+* PDFMiner
+* Plotly
 
-- Python
-- Streamlit
-- spaCy (NLP)
-- PyResparser
-- Pandas
-
----
-
-## 📦 Installation
+## ▶️ Run Locally
 
 ```bash
 pip install -r requirements.txt
-python -m spacy download en_core_web_sm
+python -m streamlit run app.py
+```
+
+## 📌 Project Structure
+
+* `app.py` → Main app
+* `courses.py` → Course data
+* `requirements.txt` → Dependencies
+
+## 🌐 Future Improvements
+
+* AI Resume Feedback
+* ATS Score
+* Downloadable Report
